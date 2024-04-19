@@ -56,7 +56,7 @@ class RecipesController extends AbstractController
             $recipe->addStep($step);
         }
 
-        // Add NutrientTypes
+        // Agregar nutrientes
         $entityManager = $this->getDoctrine()->getManager();
         $nutrientTypeRepository = $entityManager->getRepository(NutrientType::class);
         foreach ($data['nutrients'] as $nutrientData) {
@@ -101,27 +101,5 @@ class RecipesController extends AbstractController
         // Devolver la lista de recetas como respuesta
         return $this->json($recipes, 200);
 
-
-        // $entityManager = $this->getDoctrine()->getManager();
-        // $recipeRepository = $entityManager->getRepository(Recipe::class);
-
-        // // Obtener los parámetros opcionales minCalories y maxCalories
-        // $minCalorias = $request->query->get('minCalorias');
-        // $maxCalorias = $request->query->get('maxCalorias');
-
-        // // Obtener las recetas según los parámetros de calorías
-        // if ($minCalories !== null && $maxCalories !== null) {
-        //     $recipes = $recipeRepository->findByCaloriesRange($minCalories, $maxCalories);
-        // } elseif ($minCalories !== null) {
-        //     $recipes = $recipeRepository->findByMinCalories($minCalories);
-        // } elseif ($maxCalories !== null) {
-        //     $recipes = $recipeRepository->findByMaxCalories($maxCalories);
-        // } else {
-        //     // Si no se proporcionan parámetros de calorías, obtener todas las recetas
-        //     $recipes = $recipeRepository->findAll();
-        // }
-
-        // // Devolver las recetas como respuesta
-        // return $this->json($recipes, 200);
     }
 }
