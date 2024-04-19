@@ -33,10 +33,17 @@ class Recipe
     #[ORM\OneToMany(targetEntity: Step::class, mappedBy: 'recipe')]
     private Collection $steps;
 
+    /**
+     * @var Collection<int, NutrientesType>
+     */
+    #[ORM\ManyToMany(targetEntity: NutrientesType::class, inversedBy: 'recipes')]
+    private Collection $nutrients;
+
     public function __construct()
     {
         $this->ingredients = new ArrayCollection();
         $this->steps = new ArrayCollection();
+        $this->nutrients = new ArrayCollection();
     }
 
     public function getId(): ?int
@@ -131,6 +138,30 @@ class Recipe
                 $step->setRecipe(null);
             }
         }
+
+        return $this;
+    }
+
+    /**
+     * @return Collection<int, NutrientesType>
+     */
+    public function getNutrients(): Collection
+    {
+        return $this->nutrients;
+    }
+
+    public function addNutrient(NutrientesType $nutrient): static
+    {
+        if (!$this->nutrients->contains($nutrient)) {
+            $this->nutrients->add($nutrient);
+        }
+
+        return $this;
+    }
+
+    public function removeNutrient(NutrientesType $nutrient): static
+    {
+        $this->nutrients->removeElement($nutrient);
 
         return $this;
     }
