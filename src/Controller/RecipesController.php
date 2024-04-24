@@ -3,15 +3,24 @@
 namespace App\Controller;
 
 use App\Entity\Recipe;
+use App\Entity\NutrientesType;
+use App\Entity\Step;
+use App\Entity\Ingredient;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\Routing\Annotation\Route;
+use Symfony\Component\HttpFoundation\Response;
+use Doctrine\ORM\EntityManagerInterface;
+use Doctrine\Persistence\ManagerRegistry as PersistenceManagerRegistry;
+use App\Repository\RecipeRepository;
+use App\Repository\NutrientesTypeRepository;
 
 class RecipesController extends AbstractController
 {
+    
     #[Route('/recipes', name: 'new_recipe', methods: ['POST'])]
-    public function newRecipe(Request $request): JsonResponse
+    public function newRecipe(Request $request, EntityManagerInterface $entityManager, PersistenceManagerRegistry $doctrine): JsonResponse
     {
         $data = json_decode($request->getContent(), true);
 
@@ -27,7 +36,7 @@ class RecipesController extends AbstractController
 
         foreach ($data['nutrients'] as $nutrientData) {
             // Verificar si el tipo de nutriente existe en la BBDD
-            $nutrientType = $entityManager->getRepository(NutrientType::class)->find($nutrientData['id']);
+            $nutrientType = $entityManager->getRepository(NutrientesType::class)->find($nutrientData['id']);
             if (!$nutrientType) {
                 return $this->json(['error' => 'El tipo de nutriente especificado no existe'], 400);
             }
@@ -51,25 +60,25 @@ class RecipesController extends AbstractController
         // Agregar pasos
         foreach ($data['steps'] as $stepData) {
             $step = new Step();
-            $step->setOrder($stepData['order']);
+            $step->setOrderr($stepData['order']);
             $step->setDescription($stepData['description']);
             $recipe->addStep($step);
         }
 
         // Agregar nutrientes
-        $entityManager = $this->getDoctrine()->getManager();
-        $nutrientTypeRepository = $entityManager->getRepository(NutrientType::class);
+        $entityManager = $doctrine->getManager();
+        $nutrientTypeRepository = $entityManager->getRepository(NutrientesType::class);
         foreach ($data['nutrients'] as $nutrientData) {
             $nutrientTypeId = $nutrientData['id'];
             $quantity = $nutrientData['quantity'];
             $nutrientType = $nutrientTypeRepository->find($nutrientTypeId);
             if ($nutrientType) {
-                $recipe->addNutrientType($nutrientType);
+                $recipe->addNutrient($nutrientType);
             }
         }
 
         // Guardar la nueva receta en la base de datos
-        $entityManager = $this->getDoctrine()->getManager();
+        $entityManager = $doctrine->getManager();
         $entityManager->persist($recipe);
         $entityManager->flush();
 
@@ -78,28 +87,44 @@ class RecipesController extends AbstractController
     }
 
 
-
-    #[Route('/recipes', name: 'get_recipe', methods: ['GET'])]
-    public function getRecipe(Request $request): JsonResponse
+    #[Route('/recipes', name: 'get_recipes_with_ratings', methods: ['GET'])]
+    public function getRecipesWithRatings(RecipeRepository $recipeRepository): JsonResponse
     {
-        $entityManager = $this->getDoctrine()->getManager();
-        $recipeRepository = $entityManager->getRepository(Recipe::class);
-
-        // Obtener los parámetros opcionales minCalories y maxCalories
-        $minCalorias = $request->query->get('minCalorias');
-        $maxCalorias = $request->query->get('maxCalorias');
-
-        // Filtrar las recetas por las calorías por persona si los parámetros están presentes
-        $recipes = $recipeRepository->createQueryBuilder('r')
-            ->andWhere('r.caloriesPerPerson >= :minCalories')
-            ->andWhere('r.caloriesPerPerson <= :maxCalories')
-            ->setParameter('minCalories', $minCalories)
-            ->setParameter('maxCalories', $maxCalories)
-            ->getQuery()
-            ->getResult();
-
-        // Devolver la lista de recetas como respuesta
-        return $this->json($recipes, 200);
-
+        // Obtener todas las recetas
+        $recipes = $recipeRepository->findAll();
+    
+        $recipesWithRatings = [];
+    
+        // Iterar sobre cada receta para calcular el número total de votos y la valoración media
+        foreach ($recipes as $recipe) {
+            $totalVotes = $recipe->getVotes()->count();
+    
+            if ($totalVotes > 0) {
+                // Calcular la valoración media
+                $totalRating = 0;
+                foreach ($recipe->getVotes() as $vote) {
+                    $totalRating += $vote->getRate();
+                }
+                $averageRating = $totalRating / $totalVotes;
+            } else {
+                $averageRating = 0;
+            }
+    
+            // Construir un array con la información de la receta y las votaciones
+            $recipeData = [
+                'id' => $recipe->getId(),
+                'title' => $recipe->getTitle(),
+                'number-diner' => $recipe->getNumberDiner(),
+                'ratings' => [
+                    'total-votes' => $totalVotes,
+                    'average-rating' => $averageRating
+                ]
+            ];
+    
+            $recipesWithRatings[] = $recipeData;
+        }
+    
+        // Devolver la lista de recetas con las votaciones como respuesta
+        return $this->json($recipesWithRatings, 200);
     }
-}
+}       
