@@ -1,0 +1,60 @@
+{
+	"info": {
+		"_postman_id": "fafa4198-ab41-4aae-835a-9455bb3b7ccd",
+		"name": "Recuperacion examen 4VCheff",
+		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
+		"_exporter_id": "32625923"
+	},
+	"item": [
+		{
+			"name": "crear votaciones",
+			"request": {
+				"method": "POST",
+				"header": [],
+				"body": {
+					"mode": "raw",
+					"raw": "{\r\n    \"title\": \"Pasta Alfredo\",\r\n    \"number-diner\": 4,\r\n    \"ingredients\": [\r\n        {\r\n            \"name\": \"Pasta\",\r\n            \"quantity\": 250,\r\n            \"unit\": \"grams\"\r\n        },\r\n        {\r\n            \"name\": \"Heavy cream\",\r\n            \"quantity\": 1,\r\n            \"unit\": \"cup\"\r\n        }\r\n    ],\r\n    \"steps\": [\r\n        {\r\n            \"order\": 1,\r\n            \"description\": \"Boil the pasta until al dente.\"\r\n        },\r\n        {\r\n            \"order\": 2,\r\n            \"description\": \"In a saucepan, heat the heavy cream until simmering.\"\r\n        }\r\n    ],\r\n    \"nutrients\": [\r\n        {\r\n            \"id\": 1,\r\n            \"quantity\": 500\r\n        },\r\n        {\r\n            \"id\": 2,\r\n            \"quantity\": 300\r\n        }\r\n    ]\r\n}\r\n\r\n",
+					"options": {
+						"raw": {
+							"language": "json"
+						}
+					}
+				},
+				"url": {
+					"raw": "http://localhost:8000/recipes/2/rating/4",
+					"protocol": "http",
+					"host": [
+						"localhost"
+					],
+					"port": "8000",
+					"path": [
+						"recipes",
+						"2",
+						"rating",
+						"4"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "get recetas con valoraciones",
+			"request": {
+				"method": "GET",
+				"header": [],
+				"url": {
+					"raw": "http://localhost:8000/recipes",
+					"protocol": "http",
+					"host": [
+						"localhost"
+					],
+					"port": "8000",
+					"path": [
+						"recipes"
+					]
+				}
+			},
+			"response": []
+		}
+	]
+}
